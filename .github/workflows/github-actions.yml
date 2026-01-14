@@ -6,7 +6,7 @@ on:
         branches:
             - '*'
 jobs:
-    full-test:
+    unit-test:
         container: cuaesd/aesd-autotest:24-assignment4-buildroot
         runs-on: self-hosted
         timeout-minutes: 120
