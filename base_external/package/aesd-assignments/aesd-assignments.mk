@@ -8,9 +8,12 @@ AESD_ASSIGNMENTS_VERSION = c71b0e387c6f51b8b25a71310c6d78bb04002457
 # Note: Be sure to reference the *ssh* repository URL here (not https) to work properly
 # with ssh keys and the automated build/test system.
 # Your site should start with git@github.com:
-AESD_ASSIGNMENTS_SITE = ssh://git@ssh.github.com:443/Alfonsoalm/assignment-3-part-1-Alfonsoalm.git
+AESD_ASSIGNMENTS_SITE = git@github.com:Alfonsoalm/assignment-3-part-1-Alfonsoalm.git
 AESD_ASSIGNMENTS_SITE_METHOD = git
-AESD_ASSIGNMENTS_GIT_SUBMODULES = YES
+AESD_ASSIGNMENTS_GIT_SUBMODULES = YES # Include submodules in the build
+
+
+
 
 define AESD_ASSIGNMENTS_BUILD_CMDS
 	$(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)/finder-app all
@@ -28,7 +31,11 @@ define AESD_ASSIGNMENTS_INSTALL_TARGET_CMDS
     $(INSTALL) -m 0755 $(@D)/finder-app/finder.sh $(TARGET_DIR)/usr/bin/
 
     # Instalar binario writer compilado
-    $(INSTALL) -m 0755 $(@D)/finder-app/writer.sh $(TARGET_DIR)/usr/bin
+    $(INSTALL) -m 0755 $(@D)/finder-app/writer $(TARGET_DIR)/usr/bin/
 endef
+
+################################################################
+# Generic package handling
+
 
 $(eval $(generic-package))
