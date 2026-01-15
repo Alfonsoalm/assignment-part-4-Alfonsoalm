@@ -1,3 +1,4 @@
+
 name: assignment-test
 on:
     push:
@@ -5,23 +6,52 @@ on:
             - '*'
         branches:
             - '*'
+
 jobs:
     full-test:
-        container: cuaesd/aesd-autotest:24-assignment5-buildroot
         runs-on: self-hosted
+
+        # Montamos el socket SSH del host dentro del contenedor
+        container:
+          image: cuaesd/aesd-autotest:24-assignment5-buildroot
+          volumes:
+            - ${{ env.SSH_AUTH_DIR }}:${{ env.SSH_AUTH_DIR }}
+
         timeout-minutes: 120
+
         steps:
           - uses: actions/checkout@v2
+
+          # Inicializamos submodules en el HOST
           - name: Checkout submodules
             run: git submodule update --init --recursive
+
+          # Arrancamos ssh-agent EN EL HOST
           - uses: webfactory/ssh-agent@v0.5.3
             with:
                 ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+          # Hacemos visible SSH_AUTH_SOCK y su directorio para el contenedor
+          - name: Export SSH_AUTH_SOCK for container
+            run: |
+              echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+              echo "SSH_AUTH_DIR=$(dirname $SSH_AUTH_SOCK)" >> $GITHUB_ENV
+
+          # REEMPLAZAMOS el known_hosts roto que trae el contenedor
+          - name: Fix GitHub known_hosts INSIDE container
+            run: |
+              mkdir -p ~/.ssh
+              rm -f ~/.ssh/known_hosts
+              ssh-keyscan github.com >> ~/.ssh/known_hosts
+              chmod 644 ~/.ssh/known_hosts
+
+          # Ejecutamos los tests, ya con ssh accesible
           - name: Run full test
             env:
-              GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
+              SSH_AUTH_SOCK: ${{ env.SSH_AUTH_SOCK }}
+              GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes"
             run: ./full-test.sh
+
           - name: Cleanup
             if: always()
-            run: |
-              ssh-add -D
+            run: ssh-add -D || true
