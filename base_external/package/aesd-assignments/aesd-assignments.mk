@@ -13,8 +13,6 @@ AESD_ASSIGNMENTS_SITE_METHOD = git
 AESD_ASSIGNMENTS_GIT_SUBMODULES = YES # Include submodules in the build
 
 
-
-
 define AESD_ASSIGNMENTS_BUILD_CMDS
 	$(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)/finder-app all
 endef
@@ -33,9 +31,5 @@ define AESD_ASSIGNMENTS_INSTALL_TARGET_CMDS
     # Instalar binario writer compilado
     $(INSTALL) -m 0755 $(@D)/finder-app/writer $(TARGET_DIR)/usr/bin/
 endef
-
-################################################################
-# Generic package handling
-
 
 $(eval $(generic-package))
