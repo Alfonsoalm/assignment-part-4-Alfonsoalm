@@ -17,6 +17,12 @@ jobs:
           - uses: webfactory/ssh-agent@v0.5.3
             with:
                 ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          - name: Fix GitHub known_hosts issue
+            run: |
+              mkdir -p ~/.ssh
+              ssh-keygen -R github.com || true
+              ssh-keyscan github.com >> ~/.ssh/known_hosts
+              chmod 644 ~/.ssh/known_hosts
           - name: Run full test
             env:
               GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
