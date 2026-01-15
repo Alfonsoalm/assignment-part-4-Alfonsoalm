@@ -27,9 +27,9 @@ jobs:
               ssh-keygen -R github.com || true
               ssh-keyscan github.com >> ~/.ssh/known_hosts
               chmod 644 ~/.ssh/known_hosts
-          - name: Export SSH settings for nested git (Buildroot)
+          - name: Configure SSH for nested git (Buildroot)
             run: |
-              echo 'export GIT_SSH_COMMAND="ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=no"' >> $GITHUB_EN
+              echo 'GIT_SSH_COMMAND=ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=no' >> $GITHUB_ENV
           - name: Run full test
             env:
               GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
