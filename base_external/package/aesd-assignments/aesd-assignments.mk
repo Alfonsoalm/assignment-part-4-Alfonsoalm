@@ -8,7 +8,7 @@ AESD_ASSIGNMENTS_VERSION = c71b0e387c6f51b8b25a71310c6d78bb04002457
 # Note: Be sure to reference the *ssh* repository URL here (not https) to work properly
 # with ssh keys and the automated build/test system.
 # Your site should start with git@github.com:
-AESD_ASSIGNMENTS_SITE = git@github.com:Alfonsoalm/assignment-3-part-1-Alfonsoalm.git
+AESD_ASSIGNMENTS_SITE = https://github.com/Alfonsoalm/assignment-3-part-1-Alfonsoalm.git
 AESD_ASSIGNMENTS_SITE_METHOD = git
 AESD_ASSIGNMENTS_GIT_SUBMODULES = YES # Include submodules in the build
 
