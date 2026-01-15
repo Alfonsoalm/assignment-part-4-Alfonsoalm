@@ -16,8 +16,6 @@ jobs:
           volumes:
             - /tmp/ssh-sock:/tmp/ssh-sock
 
-        timeout-minutes: 120
-
         steps:
           - uses: actions/checkout@v2
 
@@ -28,20 +26,19 @@ jobs:
             with:
               ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-          # Crear socket estático accesible por el contenedor
           - name: Prepare SSH socket for container
             run: |
               mkdir -p /tmp/ssh-sock
               ln -sf $SSH_AUTH_SOCK /tmp/ssh-sock/agent.sock
               echo "SSH_AUTH_SOCK=/tmp/ssh-sock/agent.sock" >> $GITHUB_ENV
 
-          # Fix known_hosts dentro del contenedor
-          - name: Fix GitHub known_hosts
+          # ⚠️ AHORA SÍ: este comando corre DENTRO DEL CONTENEDOR
+          - name: Fix known_hosts inside container
             run: |
-              mkdir -p ~/.ssh
-              rm -f ~/.ssh/known_hosts
-              ssh-keyscan github.com >> ~/.ssh/known_hosts
-              chmod 644 ~/.ssh/known_hosts
+              mkdir -p /root/.ssh
+              rm -f /root/.ssh/known_hosts
+              ssh-keyscan github.com >> /root/.ssh/known_hosts
+              chmod 644 /root/.ssh/known_hosts
 
           - name: Run full test
             env:
