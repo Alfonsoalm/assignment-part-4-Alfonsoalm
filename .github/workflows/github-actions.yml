@@ -1,3 +1,4 @@
+
 name: assignment-test
 on:
     push:
@@ -5,36 +6,54 @@ on:
             - '*'
         branches:
             - '*'
+
 jobs:
     full-test:
-        container: cuaesd/aesd-autotest:24-assignment4-buildroot
         runs-on: self-hosted
+
+        container:
+          image: cuaesd/aesd-autotest:24-assignment4-buildroot
+          options: --ssh default
+
         timeout-minutes: 120
+
         steps:
           - uses: actions/checkout@v2
+
           - name: Checkout submodules
             run: git submodule update --init --recursive
+
+          # Start ssh-agent in the HOST RUNNER
           - uses: webfactory/ssh-agent@v0.5.3
             with:
                 ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+          # Confirm the key is loaded (host)
           - name: Verify SSH identities
             run: |
               ssh-add -l
               ls -la ~/.ssh || true
+
+          # Fix GitHub host key
           - name: Fix GitHub known_hosts issue
             run: |
               mkdir -p ~/.ssh
               ssh-keygen -R github.com || true
               ssh-keyscan github.com >> ~/.ssh/known_hosts
               chmod 644 ~/.ssh/known_hosts
+
+          # Ensure Buildroot uses SSH
           - name: Configure SSH for nested git (Buildroot)
             run: |
               echo 'GIT_SSH_COMMAND=ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=no' >> $GITHUB_ENV
+
+          # RUN TESTS (inside container, now WITH ssh-agent)
           - name: Run full test
             env:
-              GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
+              GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes"
             run: ./full-test.sh
+
+          # Cleanup
           - name: Cleanup
             if: always()
-            run: |
-              ssh-add -D
+            run: ssh-add -D || true
