@@ -3,9 +3,9 @@ name: assignment-test
 on:
     push:
         tags-ignore:
-            - '*'
+          - '*'
         branches:
-            - '*'
+          - '*'
 
 jobs:
     full-test:
@@ -13,7 +13,8 @@ jobs:
 
         container:
           image: cuaesd/aesd-autotest:24-assignment4-buildroot
-          options: --ssh default
+          volumes:
+            - ${{ env.SSH_AUTH_DIR }}:${{ env.SSH_AUTH_DIR }}
 
         timeout-minutes: 120
 
@@ -23,18 +24,20 @@ jobs:
           - name: Checkout submodules
             run: git submodule update --init --recursive
 
-          # Start ssh-agent in the HOST RUNNER
           - uses: webfactory/ssh-agent@v0.5.3
             with:
-                ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+              ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-          # Confirm the key is loaded (host)
+          - name: Export SSH_AUTH_SOCK for container
+            run: |
+              echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+              echo "SSH_AUTH_DIR=$(dirname $SSH_AUTH_SOCK)" >> $GITHUB_ENV
+
           - name: Verify SSH identities
             run: |
               ssh-add -l
               ls -la ~/.ssh || true
 
-          # Fix GitHub host key
           - name: Fix GitHub known_hosts issue
             run: |
               mkdir -p ~/.ssh
@@ -42,18 +45,13 @@ jobs:
               ssh-keyscan github.com >> ~/.ssh/known_hosts
               chmod 644 ~/.ssh/known_hosts
 
-          # Ensure Buildroot uses SSH
-          - name: Configure SSH for nested git (Buildroot)
-            run: |
-              echo 'GIT_SSH_COMMAND=ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=no' >> $GITHUB_ENV
-
-          # RUN TESTS (inside container, now WITH ssh-agent)
           - name: Run full test
             env:
-              GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes"
+              SSH_AUTH_SOCK: ${{ env.SSH_AUTH_SOCK }}
+              GIT_SSH_COMMAND: "ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=no"
             run: ./full-test.sh
 
-          # Cleanup
           - name: Cleanup
             if: always()
-            run: ssh-add -D || true
+            run: |
+              ssh-add -D || true
