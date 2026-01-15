@@ -46,6 +46,18 @@ jobs:
             run: |
               echo "SSH keys loaded:"
               ssh-add -l || echo "No SSH keys loaded in agent!"
+            
+          - name: Test GitHub SSH auth
+            env:
+              SSH_AUTH_SOCK: /tmp/ssh-sock/agent.sock
+              GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o UserKnownHostsFile=/dev/null -vvv"
+            run: ssh -T git@github.com || true
+
+          - name: Test ls-remote on assignment-3
+            env:
+              SSH_AUTH_SOCK: /tmp/ssh-sock/agent.sock
+              GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o UserKnownHostsFile=/dev/null -vvv"
+            run: git ls-remote git@github.com:Alfonsoalm/assignment-3-part-1-Alfonsoalm.git
 
           - name: Run full test
             env:
