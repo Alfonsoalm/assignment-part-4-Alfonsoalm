@@ -10,6 +10,8 @@ define AESD_ASSIGNMENTS_BUILD_CMDS
     $(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)/finder-app all
     $(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)/server all
 
+
+
 endef
 
 
